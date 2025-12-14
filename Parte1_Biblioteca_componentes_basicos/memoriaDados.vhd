@@ -18,10 +18,10 @@ entity memoriaDados is
 end entity memoriaDados; 
 
 architecture arch_memDados of memoriaDados is 
-    constant depth : natural := 2**address_size; 
+    constant depth : natural := 2**addressSize; 
     type mem_type is array (0 to depth-1) of bit_vector(dataSize-1 downto 0);
 
-    impure function init_mem(file_name : in string) return me_type is 
+    impure function init_mem(file_name : in string) return mem_type is 
         file f : text open read_mode is file_name;
         variable l : line; 
         variable tmp_bv : bit_vector(dataSize-1 downto 0); 
@@ -40,7 +40,7 @@ architecture arch_memDados of memoriaDados is
         return tmp_mem; 
     end;
 
-    signal mem : mem_type := init_mem(data_file_name);
+    signal mem : mem_type := init_mem(datFileName);
 
 begin 
     wrt: process(clock)
