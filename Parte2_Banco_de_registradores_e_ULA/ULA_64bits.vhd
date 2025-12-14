@@ -85,7 +85,7 @@ begin
     end generate gen_ula;
 
     -- Atribui o vetor interno a saida F 
-    F =< result_vector;
+    F <= result_vector;
 
     -- Flag Zero
     Z <= '1' when (result_vector = (result_vector'range => '0')) else '0';
@@ -97,5 +97,6 @@ begin
     Ov <= ov_vector(63);
 
 end architecture structure_ula;
+
 
 
