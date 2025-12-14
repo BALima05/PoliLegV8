@@ -35,50 +35,37 @@ architecture structure_ula of ula is
     signal carry_in : bit; -- Carry In do bit 0
 
     -- Sinais de interconexao
-    signal carry_c : bit_vector(64 downto 0);       -- Cadeia de carry 
+    signal carry_c : bit_vector(64 downto 0); -- Cadeia de carry 
     signal result_vector : bit_vector(63 downto 0); -- Vetor para compor o resultado
     signal ov_vector : bit_vector(63 downto 0);
 
 begin 
 
     -- 1 Decodificacao de S para Sinais de controle 
-    process(S)
-    begin 
-        op_internal <= "00";
-        a_inv <= '0';
-        b_inv <= '0';
-        carry_in <= '0';
+    -- 00: AND/NOR, 01: OR, 10: ADD/SUB, 11: PassB
+    with S select
+        op_internal <= "00" when "0000" | "1100",                   -- AND (0000) e NOR (1100)
+                       "01" when "0001",                            -- OR (0001)
+                       "10" when "0010" | "0110",                   -- ADD (0010) e SUB (0110)
+                       "11" when "0011" | "0111" | "1011" | "1111", -- Pass B (Termina em 11)
+                       "00" when others;                            -- Segurança padrao: AND
 
-        case S is 
-            when "0000" => -- AND
-                op_internal <= "00";
-            
-            when "0001" => -- OR
-                op_internal <= "01";
+    -- Seleção da Inversão de B
+    with S select
+        b_inv_internal <= '1' when "0110" | "0111" | "1100",
+                          '0' when others;
 
-            when "0010" => -- ADD
-                op_internal <= "10";
-                carry_in <= '0';
+    -- Seleção da Inversão de A
+    -- A é invertido apenas no NOR (1100) 
+    with S select
+        a_inv_internal <= '1' when "1100",
+                          '0' when others;
 
-            when "0110" => -- SUB
-                op_internal <= "10";
-                b_inv <= '1';
-                carry_in <= '1';
-
-            when "1100" => -- NOR
-                op_internal <= "00";
-                a_inv <= '1';
-                b_inv <= '1';
-            
-            when "0011" | "0111" | "1011" | "1111" => -- Pass B
-                op_internal <= '0';
-                b_inv <= '0';
-            
-            when others => 
-                -- Seguranca padrao: AND
-                op_internal <= "00";
-        end case;
-    end process;
+    -- Seleção do Carry In Inicial
+    -- Carry In é 1 na Subtração (0110) e NOR (1100) 
+    with S select
+        c_in_base <= '1' when "0110" | "1100", 
+                     '0' when others;
 
     carry_c(0) <= carry_in;
 
@@ -110,4 +97,5 @@ begin
     Ov <= ov_vector(63);
 
 end architecture structure_ula;
+
 
