@@ -2,7 +2,7 @@ entity reg_tb is
 end entity reg_tb;
 
 architecture behavior of reg_tb is
-    constant N : natural := 8; 
+    constant N : natural := 64; 
     constant clock_period : time := 10 ns;
 
     signal clk_tb    : bit := '0';
