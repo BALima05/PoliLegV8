@@ -15,8 +15,8 @@ entity memoriaInstrucoes is
 end entity memoriaInstrucoes;
 
 architecture arch_memInstr of memoriaInstrucoes is 
-    constant mem : natural := 2**addressSize;
-    type mem_type is array (0 to mem-1) of bit_vector (dataSize-1 downto 0);
+    constant mem_depht : natural := 2**addressSize;
+    type mem_type is array (0 to mem_depht-1) of bit_vector (dataSize-1 downto 0);
 
     impure function init_mem(file_name : in string) return mem_type is
         file     f       : text open read_mode is file_name; 
@@ -33,10 +33,10 @@ architecture arch_memInstr of memoriaInstrucoes is
         return tmp_mem; 
     end; 
 
-    constant mem : mem_type := init_mem(data_file_name);
+    constant mem_data : mem_type := init_mem(datFileName);
 
  begin 
-     data <= mem(to_integer(unsigned(addr)));
+     data <= mem_data(to_integer(unsigned(addr)));
  end arch_memInstr; 
 
 
