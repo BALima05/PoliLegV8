@@ -26,16 +26,18 @@ architecture arch_memDados of memoriaDados is
         variable l : line; 
         variable tmp_bv : bit_vector(dataSize-1 downto 0); 
         variable tmp_mem : mem_type; 
-    
+        variable iRead 	 : natural := 0;    
+
     begin 
         for i in mem_type'range loop 
             tmp_mem(i) := (others => '0');
         end loop;
 
-        for i in mem_type'range loop 
+        while not endfile(f) loop 
             readline(f, l);
             read(l, tmp_bv);
-            tmp_mem(i) := tmp_bv; 
+            tmp_mem(iRead) := tmp_bv; 
+	    iRead := iRead + 1;
         end loop; 
         return tmp_mem; 
     end;
@@ -54,4 +56,5 @@ begin
     data_o <= mem(to_integer(unsigned(addr)));
 
 end arch_memDados; 
+
     
