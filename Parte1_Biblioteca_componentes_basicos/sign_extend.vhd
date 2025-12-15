@@ -11,7 +11,7 @@ entity sign_extend is
         inData      : in bit_vector (dataISize-1 downto 0);
         inDataStart : in bit_vector (dataMaxPosition-1 downto 0); -- posicao do bit mais significativo do valor util na entrada (bit de sinal)
         inDataEnd   : in bit_vector (dataMaxPosition-1 downto 0); -- posicao do bit menos significativo do valor util na entrada
-        outData     : out bit_vector (dataOSize-1 downto 0); -- dado de saida com tamanho dataOSize e sinal estendido 
+        outData     : out bit_vector (dataOSize-1 downto 0) -- dado de saida com tamanho dataOSize e sinal estendido 
     );
 end entity sign_extend; 
 
@@ -40,6 +40,7 @@ begin
 end architecture arch_signExtend;
 
     
+
 
 
 
