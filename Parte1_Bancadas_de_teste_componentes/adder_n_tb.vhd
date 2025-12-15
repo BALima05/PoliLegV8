@@ -13,7 +13,7 @@ begin
     uut: entity work.adder_n
         generic map (dataSize => N)
         port map (
-            ino => ino_tb, in1 => in1_tb,
+            in0 => ino_tb, in1 => in1_tb,
             sum => sum_tb, cOut => cOut_tb
         );
 
@@ -42,4 +42,5 @@ begin
         report "Simulação do somador finalizada!";
         wait;
     end process;
+
 end architecture behavior;
