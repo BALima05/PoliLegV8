@@ -25,12 +25,13 @@ architecture arch_memInstr of memoriaInstrucoes is
         variable tmp_mem : mem_type; 
     
     begin 
-        for i in mem_type'range loop
+        while not endfile(f) loop
             readline(f, l);
             read(l, tmp_bv);
             tmp_mem(i) := tmp_bv;
+	    i := i + 1;
         end loop; 
-        return tmp_mem; 
+        return tmp_mem;
     end; 
 
     constant mem_data : mem_type := init_mem(datFileName);
@@ -38,5 +39,6 @@ architecture arch_memInstr of memoriaInstrucoes is
  begin 
      data <= mem_data(to_integer(unsigned(addr)));
  end arch_memInstr; 
+
 
 
