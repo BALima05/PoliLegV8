@@ -52,19 +52,19 @@ begin
 
     -- Seleção da Inversão de B
     with S select
-        b_inv_internal <= '1' when "0110" | "0111" | "1100",
+        b_inv <= '1' when "0110" | "0111" | "1100",
                           '0' when others;
 
     -- Seleção da Inversão de A
     -- A é invertido apenas no NOR (1100) 
     with S select
-        a_inv_internal <= '1' when "1100",
+        a_inv <= '1' when "1100",
                           '0' when others;
 
     -- Seleção do Carry In Inicial
     -- Carry In é 1 na Subtração (0110) e NOR (1100) 
     with S select
-        c_in_base <= '1' when "0110" | "1100", 
+        carry_in <= '1' when "0110" | "1100", 
                      '0' when others;
 
     carry_c(0) <= carry_in;
@@ -73,7 +73,7 @@ begin
         instancia_bit: ula1bit 
             port map (
                 a => A(i),
-                b => B(i);
+                b => B(i),
                 cin => carry_c(i),
                 ainvert => a_inv, 
                 binvert => b_inv,
