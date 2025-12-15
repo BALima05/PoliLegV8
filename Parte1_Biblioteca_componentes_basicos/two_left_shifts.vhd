@@ -1,5 +1,5 @@
 library ieee;
-use numeric_bit.all;
+use ieee.numeric_bit.all;
 
 entity two_left_shifts is 
     generic (
@@ -16,4 +16,5 @@ begin
     output <= input(dataSize-3 downto 0) & "00";
 
 end architecture arch_leftShifts;
+
 
