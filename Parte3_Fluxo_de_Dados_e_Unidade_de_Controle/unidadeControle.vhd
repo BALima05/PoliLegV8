@@ -42,14 +42,14 @@ begin
     s_B    <= '1' when opcode(10 downto 5) = "000101" else '0';
 
     -- Definicao dos sinais de controle
-    reg2Loc <= '1' when (s_STUR = '1' or s_CBZ = '1') else '0';
-    aluSrc <= '1' when (s_LDUR = '1' or s_STUR = '1') else '0';
-    memToReg <= '1' when s_LDUR ='1' else '0';
-    regWrite <= '1' when (s_ADD ='1' or s_SUB = '1' or s_AND = '1' or s_ORR = '1' or s_LDUR = '1') else '0'; 
-    memRead <= '1' when s_LDUR = '1' else '0'; 
-    memWrite <= '1' when s_STUR = '1' else '0';
-    branch <= '1' when s_CBZ = '1' else '0';
-    uncondBranch <= when s_B = '1' else '0';
+    reg2Loc      <= '1' when (s_STUR = '1' or s_CBZ = '1') else '0';
+    aluSrc       <= '1' when (s_LDUR = '1' or s_STUR = '1') else '0';
+    memToReg     <= '1' when s_LDUR = '1' else '0';
+    regWrite     <= '1' when (s_ADD = '1' or s_SUB = '1' or s_AND = '1' or s_ORR = '1' or s_LDUR = '1') else '0'; 
+    memRead      <= '1' when s_LDUR = '1' else '0'; 
+    memWrite     <= '1' when s_STUR = '1' else '0';
+    branch       <= '1' when s_CBZ = '1' else '0';
+    uncondBranch <= '1' when s_B = '1' else '0';
 
     -- Controle da ULA
     alu_control <= "0010" when (s_ADD = '1' or s_LDUR = '1' or s_STUR = '1') else 
@@ -60,14 +60,15 @@ begin
                    "0000";
     
     -- Controle do Sign Extend 
-    extendMSB <= "10100" when (is_LDUR = '1' or is_STUR = '1') else 
-                 "10111" when (is_CBZ = '1') else                   
-                 "11001" when (is_B = '1') else                     
+    extendMSB <= "10100" when (s_LDUR = '1' or s_STUR = '1') else 
+                 "10111" when (s_CBZ = '1') else                   
+                 "11001" when (s_B = '1') else                     
                  "00000";
 
-    extendLSB <= "01100" when (is_LDUR = '1' or is_STUR = '1') else 
-                 "00101" when (is_CBZ = '1') else                   
-                 "00000" when (is_B = '1') else               
+    extendLSB <= "01100" when (s_LDUR = '1' or s_STUR = '1') else 
+                 "00101" when (s_CBZ = '1') else                   
+                 "00000" when (s_B = '1') else               
                  "00000"; 
                  
 end structure_unidControle;
+
