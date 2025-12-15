@@ -29,7 +29,7 @@ begin
         size := msb_i - lsb_i + 1; -- Calcula o tamanho do offset
 
         for k in 0 to dataOSize-1 loop 
-            if k <= size then 
+            if k < size then 
                 outData(k) <= inData(lsb_i + k); -- Copia os bits originais do campo escolhido 
             else 
                 outData(k) <= inData(msb_i);  -- Copia o bit de sinal (posicao msb_i da entrada)
@@ -40,6 +40,7 @@ begin
 end architecture arch_signExtend;
 
     
+
 
 
 
