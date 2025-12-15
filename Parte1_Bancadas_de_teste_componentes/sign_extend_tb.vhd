@@ -65,11 +65,12 @@ begin
         s_inDataStart <= "00000"; -- Bit de sinal é o índice 0
         s_inDataEnd   <= "00000";
         wait for 10 ns;
-        assert (s_outData = (others => '1'))
+        assert (s_outData = (x"FFFFFFFF"))
             report "Erro Caso 4: Extensão de bit único falhou" severity error;
 
         report "Testes finalizados com sucesso!";
         wait;
     end process;
+
 
 end architecture;
