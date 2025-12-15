@@ -23,6 +23,7 @@ architecture arch_memInstr of memoriaInstrucoes is
         variable l       : line;
         variable tmp_bv  : bit_vector(dataSize-1 downto 0);
         variable tmp_mem : mem_type; 
+		variable i 	 : natural := 0;
     
     begin 
         while not endfile(f) loop
@@ -39,6 +40,7 @@ architecture arch_memInstr of memoriaInstrucoes is
  begin 
      data <= mem_data(to_integer(unsigned(addr)));
  end arch_memInstr; 
+
 
 
 
