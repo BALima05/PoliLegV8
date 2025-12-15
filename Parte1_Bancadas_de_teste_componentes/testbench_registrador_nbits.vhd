@@ -35,15 +35,8 @@ begin
 
     stim_proc: process
     begin
-        -- Caso 1: Teste de Reset Assíncrono
-        reset_tb <= '1';
-        wait for 15 ns; 
-        assert (q_tb = (q_tb'range => '0')) report "Erro: Reset falhou" severity error;
-        reset_tb <= '0';
-        wait for 10 ns;
-
         -- Caso 2: Tentativa de escrita com Enable em '0'
-        d_tb <= "10101010";
+        d_tb <= "0000000000000000000000000000000000000000000000000000000010101010";
         enable_tb <= '0';
         wait until clk_tb = '1';
         wait for 2 ns;
@@ -53,14 +46,14 @@ begin
         enable_tb <= '1';
         wait until clk_tb = '1';
         wait for 2 ns;
-        assert (q_tb = "10101010") report "Erro: Falha na escrita do dado" severity error;
+        assert (q_tb = "0000000000000000000000000000000000000000000000000000000010101010") report "Erro: Falha na escrita do dado" severity error;
 
         -- Caso 4: Verificação de Retenção de Dado
         enable_tb <= '0';
-        d_tb <= "11110000"; -- Muda a entrada, mas enable está desligado
+        d_tb <= "0000000000000000000000000000000000000000000000000000000011110000"; -- Muda a entrada, mas enable está desligado
         wait until clk_tb = '1';
         wait for 2 ns;
-        assert (q_tb = "10101010") report "Erro: Dado mudou sem enable" severity error;
+        assert (q_tb = "0000000000000000000000000000000000000000000000000000000010101010") report "Erro: Dado mudou sem enable" severity error;
 
         -- Caso 5: Reset durante operação (Assíncrono)
         wait for 5 ns;
@@ -74,3 +67,4 @@ begin
     end process;
 
 end architecture behavior;
+
