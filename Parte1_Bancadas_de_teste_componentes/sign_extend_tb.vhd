@@ -65,7 +65,7 @@ begin
         s_inDataStart <= "00000"; -- Bit de sinal é o índice 0
         s_inDataEnd   <= "00000";
         wait for 10 ns;
-        assert (s_outData = (x"FFFFFFFF"))
+        assert (s_outData = (x"FFFFFFFFFFFFFFFF"))
             report "Erro Caso 4: Extensão de bit único falhou" severity error;
 
         report "Testes finalizados com sucesso!";
@@ -74,3 +74,4 @@ begin
 
 
 end architecture;
+
