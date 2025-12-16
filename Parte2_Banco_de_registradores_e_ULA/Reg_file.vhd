@@ -25,7 +25,7 @@ architecture arch_regfile of regfile is
         );
     end component;
 
-    type reg_array is array (0 to 31) of bit_vector(dataSize-1 downto 0);
+    type reg_array is array (0 to 31) of bit_vector(64-1 downto 0);
     signal banco_sinais : reg_array; 
 
     -- Sinal auxiliar para decodificacao do enable de escrita 
@@ -40,7 +40,7 @@ begin
             write_enable_decoded(i) <= '1' when (regWrite = '1' and to_integer(unsigned(wr)) = i) else '0';
 
             instancia_reg: reg 
-                generic map (dataSize => dataSize)
+                generic map (dataSize => 64)
                     port map (
                         clock   => clock,
                         reset   => reset,
@@ -62,3 +62,4 @@ begin
     q2 <= banco_sinais(to_integer(unsigned(rr2)));
 
 end architecture arch_regfile;
+
