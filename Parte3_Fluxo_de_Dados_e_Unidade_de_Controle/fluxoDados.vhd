@@ -88,7 +88,7 @@ architecture structure_fluxoDados of fluxoDados is
             inData      : in bit_vector (dataISize-1 downto 0);
             inDataStart : in bit_vector (dataMaxPosition-1 downto 0); -- posicao do bit mais significativo do valor util na entrada (bit de sinal)
             inDataEnd   : in bit_vector (dataMaxPosition-1 downto 0); -- posicao do bit menos significativo do valor util na entrada
-            outData     : out bit_vector (dataOSize-1 downto 0); -- dado de saida com tamanho dataOSize e sinal estendido 
+            outData     : out bit_vector (dataOSize-1 downto 0) -- dado de saida com tamanho dataOSize e sinal estendido 
         );
     end component; 
 
@@ -155,7 +155,7 @@ architecture structure_fluxoDados of fluxoDados is
     signal reg_data1 : bit_vector(63 downto 0);
     signal reg_data2 : bit_vector(63 downto 0);
     
-    signal sign_extend : bit_vector(63 downto 0);
+    signal s_sign_extend : bit_vector(63 downto 0);
 
     signal alu_inputB : bit_vector(63 downto 0);
     signal alu_result : bit_vector(63 downto 0);
@@ -176,7 +176,7 @@ begin
     opcode <= s_instruction(31 downto 21);  -- Opcode
      
     U_PC: reg 
-        generic map (dataSize => 7);
+        generic map (dataSize => 7)
         port map (
             clock  => clock,
             reset  => reset,
@@ -216,7 +216,7 @@ begin
             inData       => s_instruction,
             inDataStart  => extendMSB,
             inDataEnd    => extendLSB,
-            outData      => sign_extend
+            outData      => s_sign_extend
         );
 
     U_ULA : ula 
@@ -243,7 +243,7 @@ begin
         generic map (dataSize => 64)
         port map (
             in0  => reg_data2,
-            in1  => sign_extend,
+            in1  => s_sign_extend,
             sel  => aluSrc,
             dOut => alu_inputB
         );
@@ -303,12 +303,13 @@ begin
     
     U_SHIFT : two_left_shifts
         port map (
-            input  => sign_extend,
+            input  => s_sign_extend,
             output => branch_offset
         );
     
 end architecture structure_fluxoDados;
     
     
+
 
 
