@@ -126,7 +126,7 @@ begin
             report "ERRO: X1 nao foi atualizado para zero." severity error;
 
         report "--- FIM DA SIMULACAO: SUCESSO SE NAO HOUVE ERROS ---";
-        wait;
+        wait for CLK_PERIOD * 2;
     end process;
 
 end architecture sim;
