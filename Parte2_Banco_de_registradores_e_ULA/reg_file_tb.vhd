@@ -49,10 +49,13 @@ begin
 
     p_clock: process
     begin
+        while now < 100 ns loop -- Limita o tempo de simulaÃ§Ã£o
         s_clock <= '0';
         wait for CLK_PERIOD / 2;
         s_clock <= '1';
         wait for CLK_PERIOD / 2;
+        end loop;
+        wait;
     end process;
 
     p_stimulus: process
@@ -128,5 +131,6 @@ begin
         report "--- FIM DA SIMULACAO: SUCESSO SE NAO HOUVE ERROS ---";
         wait;
     end process;
+
 
 end architecture sim;
