@@ -14,7 +14,7 @@ entity unidadeControle is
         uncondBranch : out bit;                     -- sinal de controle desvio incondicional
         memRead      : out bit;                     -- sinal de controle leitura RAM dados
         memWrite     : out bit;                     -- sinal de controle escrita RAM dados
-        memToReg     : out bit;                     -- sinal de controle MUX Write Data
+        memToReg     : out bit                      -- sinal de controle MUX Write Data
     );
 end entity unidadeControle; 
 
@@ -71,4 +71,5 @@ begin
                  "00000"; 
                  
 end structure_unidControle;
+
 
