@@ -52,7 +52,7 @@ begin
 
     -- Seleção da Inversão de B
     with S select
-        b_inv <= '1' when "0110" | "0111" | "1100",
+        b_inv <= '1' when "0110" | "1100",
                           '0' when others;
 
     -- Seleção da Inversão de A
@@ -97,6 +97,7 @@ begin
     Ov <= ov_vector(63);
 
 end architecture structure_ula;
+
 
 
 
