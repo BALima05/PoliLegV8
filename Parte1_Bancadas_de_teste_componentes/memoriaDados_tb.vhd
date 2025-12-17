@@ -50,8 +50,11 @@ begin
 
     clk_proc: process
     begin
+        while now < 550 ns loop -- Limita o tempo de simulaÃ§Ã£o
         clk <= '0'; wait for T_CLK/2;
         clk <= '1'; wait for T_CLK/2;
+	    end loop;
+        wait;
     end process;
 
     stim_proc: process
@@ -145,5 +148,6 @@ begin
         report "FIM DA SIMULACAO." severity note;
         wait;
     end process;
+
 
 end architecture sim;
