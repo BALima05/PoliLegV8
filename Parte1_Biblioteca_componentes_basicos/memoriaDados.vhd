@@ -6,7 +6,7 @@ entity memoriaDados is
     generic (
         addressSize : natural := 8;
         dataSize    : natural := 8;
-        datFileName : string := "memDados_conteudo_inicial.dat"
+        datFileName : string := "memDadosInicialPolilegv8.dat"
     );
     port ( 
         clock  : in bit;
