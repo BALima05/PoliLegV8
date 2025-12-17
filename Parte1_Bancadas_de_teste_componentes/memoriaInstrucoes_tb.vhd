@@ -1,59 +1,124 @@
 library ieee;
 use ieee.numeric_bit.all;
+use std.textio.all;
 
-entity memoriaInstrucoes_tb is
-end entity memoriaInstrucoes_tb;
+entity tb_memoriaInstrucoes is
+end entity tb_memoriaInstrucoes;
 
-architecture behavior of memoriaInstrucoes_tb is
-    constant ADDR_WIDTH : natural := 8;
-    constant DATA_WIDTH : natural := 8;
+architecture sim of tb_memoriaInstrucoes is
+
+    component memoriaInstrucoes is
+        generic (
+            addressSize : natural := 8;
+            dataSize    : natural := 8;
+            datFileName : string  := "memInstr_conteudo.dat"
+        );
+        port (
+            addr : in bit_vector(addressSize-1 downto 0);
+            data : out bit_vector(dataSize-1 downto 0)
+        );
+    end component;
+
+    signal s_addr : bit_vector(7 downto 0) := (others => '0');
+    signal s_data : bit_vector(7 downto 0); -- Saída agora é 8 bits
     
-    signal addr_tb : bit_vector(ADDR_WIDTH-1 downto 0) := (others => '0');
-    signal data_tb : bit_vector(DATA_WIDTH-1 downto 0);
+    constant T_ACCESS : time := 10 ns;
 
 begin
-    dut: entity work.memoriaInstrucoes
+
+    DUT: memoriaInstrucoes
         generic map (
-            addressSize => ADDR_WIDTH,   -- 
-            dataSize    => DATA_WIDTH,    -- 
-            datFileName => "memInstr_conteudo.dat" -- 
+            addressSize => 8,
+            dataSize    => 8,
+            datFileName => "memInstr_conteudo.dat"
         )
         port map (
-            addr => addr_tb, -- [cite: 6]
-            data => data_tb  -- [cite: 6]
+            addr => s_addr,
+            data => s_data
         );
 
-    stim_proc: process
+    process
+        variable byte0, byte1, byte2, byte3 : bit_vector(7 downto 0);
+        variable instr_32 : bit_vector(31 downto 0);
+        variable pc : integer := 0; -- Program Counter simulado
     begin
-        -- Caso 1: Verificar a primeira instrução (Endereço 0)
-        -- Esperado: 11111000 conforme a linha 1 do arquivo 
-        addr_tb <= "00000000";
-        wait for 10 ns;
-        assert (data_tb = "11111000") 
-            report "Erro: Dado no endereco 0 incorreto" severity error;
+        report "Iniciando Teste: Leitura de Instrucoes de 4 Bytes (32 bits)" severity note;
+        wait for T_ACCESS;
 
-        -- Caso 2: Verificar a segunda instrução (Endereço 1)
-        -- Esperado: 01000000 conforme a linha 2 do arquivo 
-        addr_tb <= "00000001";
-        wait for 10 ns;
-        assert (data_tb = "01000000") 
-            report "Erro: Dado no endereco 1 incorreto" severity error;
+        -------------------------------------------------------------------
+        -- TESTE 1: Buscar a Primeira Instrução (Endereços 0, 1, 2, 3)
+        -- Arquivo:
+        -- Linha 1 (End 0): 11111000 (F8)
+        -- Linha 2 (End 1): 01000000 (40)
+        -- Linha 3 (End 2): 00000011 (03)
+        -- Linha 4 (End 3): 11100001 (E1)
+        -------------------------------------------------------------------
+        
+        -- Passo 1: Ler Byte 0 (PC)
+        s_addr <= bit_vector(to_unsigned(pc, 8));
+        wait for T_ACCESS;
+        byte0 := s_data; -- F8
 
-        -- Caso 3: Testar acesso em um endereço mais distante (Endereço 12)
-        -- O endereço 12 em binário é 00001100. Esperado: 11001011 
-        addr_tb <= "00001100";
-        wait for 10 ns;
-        assert (data_tb = "11001011") 
-            report "Erro: Dado no endereco 12 incorreto" severity error;
+        -- Passo 2: Ler Byte 1 (PC + 1)
+        s_addr <= bit_vector(to_unsigned(pc + 1, 8));
+        wait for T_ACCESS;
+        byte1 := s_data; -- 40
 
-        -- Caso 4: Verificação de comportamento combinacional
-        -- Mudança rápida de endereço para garantir que a saída segue a entrada 
-        addr_tb <= "00000010"; wait for 5 ns;
-        addr_tb <= "00000000"; wait for 5 ns;
-        assert (data_tb = "11111000") report "Erro na alternancia rapida" severity error;
+        -- Passo 3: Ler Byte 2 (PC + 2)
+        s_addr <= bit_vector(to_unsigned(pc + 2, 8));
+        wait for T_ACCESS;
+        byte2 := s_data; -- 03
 
-        report "Simulacao da Memoria concluida!";
+        -- Passo 4: Ler Byte 3 (PC + 3)
+        s_addr <= bit_vector(to_unsigned(pc + 3, 8));
+        wait for T_ACCESS;
+        byte3 := s_data; -- E1
+
+        -- Montar a instrução (Assumindo Big Endian para leitura visual direta)
+        instr_32 := byte0 & byte1 & byte2 & byte3;
+
+        -- Verificar
+        assert instr_32 = x"F84003E1"
+            report "Erro na Instrucao 0. Recebido: " & integer'image(to_integer(unsigned(instr_32)))
+            severity error;
+            
+        report "Instrucao 0 reconstruida com sucesso: " & "F84003E1";
+
+        -------------------------------------------------------------------
+        -- TESTE 2: Próxima Instrução (PC incrementa em 4 -> Endereços 4, 5, 6, 7)
+        -------------------------------------------------------------------
+        pc := 4; 
+        
+        -- Ler os 4 bytes sequenciais novamente
+        s_addr <= bit_vector(to_unsigned(pc, 8));     wait for T_ACCESS; byte0 := s_data;
+        s_addr <= bit_vector(to_unsigned(pc+1, 8));   wait for T_ACCESS; byte1 := s_data;
+        s_addr <= bit_vector(to_unsigned(pc+2, 8));   wait for T_ACCESS; byte2 := s_data;
+        s_addr <= bit_vector(to_unsigned(pc+3, 8));   wait for T_ACCESS; byte3 := s_data;
+        
+        instr_32 := byte0 & byte1 & byte2 & byte3;
+
+        -- Arquivo linhas 5-8:
+        -- 11111000 (F8)
+        -- 01000000 (40)
+        -- 10000011 (83)
+        -- 11100010 (E2) -> Hex esperado: F84083E2
+        
+        assert instr_32 = x"F84083E2"
+            report "Erro na Instrucao 1 (PC=4)."
+            severity error;
+            
+        report "Instrucao 1 reconstruida com sucesso: " & "F84083E2";
+
+        -------------------------------------------------------------------
+        -- TESTE 3: Caso de Borda (Memória Vazia)
+        -------------------------------------------------------------------
+        -- Ler endereço distante (200) onde deve haver zeros
+        s_addr <= bit_vector(to_unsigned(200, 8));
+        wait for T_ACCESS;
+        assert s_data = "00000000" report "Erro: Memoria nao inicializada corretamente com zeros" severity error;
+
+        report "Fim do Teste." severity note;
         wait;
     end process;
 
-end architecture behavior;
+end architecture sim;
