@@ -10,7 +10,6 @@ end entity polilegv8;
 
 architecture arch_polilegv8 of polilegv8 is 
 
-    
     -- 1. Declaracao dos Componentes
     component unidadeControle is 
         port (
