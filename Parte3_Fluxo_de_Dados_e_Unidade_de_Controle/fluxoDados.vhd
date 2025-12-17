@@ -35,11 +35,11 @@ architecture structure_fluxoDados of fluxoDados is
         );
     end component; 
 
-    -- Memória de Instruções (Agora dataSize = 8)
+    -- Memória de Instruções (8 bits por linha)
     component memoriaInstrucoes is
         generic (
             addressSize : natural := 7;
-            dataSize    : natural := 8; -- Ajustado para 8 bits
+            dataSize    : natural := 8;
             datFileName : string  := "memInstrPolilegv8.dat"
         );
         port (
@@ -48,11 +48,11 @@ architecture structure_fluxoDados of fluxoDados is
         );
     end component;
 
-    -- Memória de Dados (Agora dataSize = 8)
+    -- Memória de Dados (8 bits por linha)
     component memoriaDados is 
         generic (
             addressSize : natural := 7;
-            dataSize    : natural := 8; -- Ajustado para 8 bits
+            dataSize    : natural := 8;
             datFileName : string  := "memDadosInicialPolilegv8.dat"
         );
         port ( 
@@ -137,8 +137,9 @@ architecture structure_fluxoDados of fluxoDados is
     signal pc_sum4, pc_branch : bit_vector(63 downto 0);
     signal instruction : bit_vector(31 downto 0);
     
-    -- Sinais auxiliares para leitura de instrução (4 bytes)
+    -- Sinais auxiliares para cálculo de endereço de Instrução
     signal pc_idx : unsigned(7 downto 0);
+    signal addr_instr_0, addr_instr_1, addr_instr_2, addr_instr_3 : bit_vector(7 downto 0);
     signal instr_b0, instr_b1, instr_b2, instr_b3 : bit_vector(7 downto 0);
 
     -- Banco de Registradores
@@ -155,8 +156,13 @@ architecture structure_fluxoDados of fluxoDados is
 
     -- Memória de Dados (8 Bytes)
     signal data_memory_out : bit_vector(63 downto 0);
+    
+    -- Sinais auxiliares para cálculo de endereço de Dados
     signal alu_idx : unsigned(7 downto 0);
-    -- Sinais para cada byte lido da memória de dados
+    signal addr_data_0, addr_data_1, addr_data_2, addr_data_3 : bit_vector(7 downto 0);
+    signal addr_data_4, addr_data_5, addr_data_6, addr_data_7 : bit_vector(7 downto 0);
+    
+    -- Sinais de dados de leitura
     signal data_d0, data_d1, data_d2, data_d3, data_d4, data_d5, data_d6, data_d7 : bit_vector(7 downto 0);
 
     -- Controle
@@ -169,24 +175,30 @@ begin
     opcode <= instruction(31 downto 21);
 
     -- =======================================================================
-    -- ESTÁGIO 1: Instruction Fetch (Busca de Instrução com 4 Bancos)
+    -- ESTÁGIO 1: Instruction Fetch
     -- =======================================================================
     
     U_PC : reg 
         generic map (dataSize => 64)
         port map (clock => clock, reset => reset, enable => '1', d => pc_next, q => pc_out);
 
-    -- Cálculo do endereço base para os bancos de memória (truncado para 8 bits)
+    -------------------------------------------------------------------------
+    -- Correção: Cálculo explícito dos endereços fora do Port Map
+    -------------------------------------------------------------------------
     pc_idx <= unsigned(pc_out(7 downto 0));
+    
+    addr_instr_0 <= bit_vector(pc_idx);
+    addr_instr_1 <= bit_vector(pc_idx + 1);
+    addr_instr_2 <= bit_vector(pc_idx + 2);
+    addr_instr_3 <= bit_vector(pc_idx + 3);
 
-    -- Instanciação de 4 memórias em paralelo para ler 32 bits de uma vez
-    -- Assumindo Big Endian: Endereço PC = Byte Mais Significativo (Bits 31-24)
-    MEMI_B0: memoriaInstrucoes port map (addr => bit_vector(pc_idx + 0), data => instr_b0);
-    MEMI_B1: memoriaInstrucoes port map (addr => bit_vector(pc_idx + 1), data => instr_b1);
-    MEMI_B2: memoriaInstrucoes port map (addr => bit_vector(pc_idx + 2), data => instr_b2);
-    MEMI_B3: memoriaInstrucoes port map (addr => bit_vector(pc_idx + 3), data => instr_b3);
+    -- Instanciação usando os sinais pré-calculados
+    MEMI_B0: memoriaInstrucoes port map (addr => addr_instr_0, data => instr_b0);
+    MEMI_B1: memoriaInstrucoes port map (addr => addr_instr_1, data => instr_b1);
+    MEMI_B2: memoriaInstrucoes port map (addr => addr_instr_2, data => instr_b2);
+    MEMI_B3: memoriaInstrucoes port map (addr => addr_instr_3, data => instr_b3);
 
-    -- Concatena os 4 bytes para formar a instrução
+    -- Concatenação (Big Endian para Instrução: Endereço menor = MSB)
     instruction <= instr_b0 & instr_b1 & instr_b2 & instr_b3;
 
     U_ADD_PC4: adder_n 
@@ -229,7 +241,7 @@ begin
         port map (A => reg_data1, B => alu_in_B, ctrl => alu_control, result => alu_result, zero => flag_zero, ovf => open);
 
     U_SHIFT : shift_left 
-        generic map (dataSizeIn => 64, dataSizeOut => 64, shift => 2) -- Shift branch offset by 2
+        generic map (dataSizeIn => 64, dataSizeOut => 64, shift => 2)
         port map (dIn => imm_extended, dOut => imm_shifted);
 
     U_ADD_BRANCH : adder_n 
@@ -237,25 +249,34 @@ begin
         port map (in0 => pc_out, in1 => imm_shifted, sum => pc_branch, cOut => open);
 
     -- =======================================================================
-    -- ESTÁGIO 4: Memory Access (Dados de 64 bits com 8 Bancos)
+    -- ESTÁGIO 4: Memory Access
     -- =======================================================================
     
-    -- Endereço base da ULA (truncado)
+    -------------------------------------------------------------------------
+    -- Correção: Cálculo explícito dos endereços de dados
+    -------------------------------------------------------------------------
     alu_idx <= unsigned(alu_result(7 downto 0));
 
-    -- Instanciação de 8 memórias para leitura/escrita de 64 bits (Big Endian)
-    -- Byte 0 (MSB) no endereço base, Byte 7 (LSB) no endereço base + 7
-    
-    MEMD_B0: memoriaDados port map (clock => clock, wr => memWrite, addr => bit_vector(alu_idx + 0), data_i => reg_data2(63 downto 56), data_o => data_d0);
-    MEMD_B1: memoriaDados port map (clock => clock, wr => memWrite, addr => bit_vector(alu_idx + 1), data_i => reg_data2(55 downto 48), data_o => data_d1);
-    MEMD_B2: memoriaDados port map (clock => clock, wr => memWrite, addr => bit_vector(alu_idx + 2), data_i => reg_data2(47 downto 40), data_o => data_d2);
-    MEMD_B3: memoriaDados port map (clock => clock, wr => memWrite, addr => bit_vector(alu_idx + 3), data_i => reg_data2(39 downto 32), data_o => data_d3);
-    MEMD_B4: memoriaDados port map (clock => clock, wr => memWrite, addr => bit_vector(alu_idx + 4), data_i => reg_data2(31 downto 24), data_o => data_d4);
-    MEMD_B5: memoriaDados port map (clock => clock, wr => memWrite, addr => bit_vector(alu_idx + 5), data_i => reg_data2(23 downto 16), data_o => data_d5);
-    MEMD_B6: memoriaDados port map (clock => clock, wr => memWrite, addr => bit_vector(alu_idx + 6), data_i => reg_data2(15 downto  8), data_o => data_d6);
-    MEMD_B7: memoriaDados port map (clock => clock, wr => memWrite, addr => bit_vector(alu_idx + 7), data_i => reg_data2( 7 downto  0), data_o => data_d7);
+    addr_data_0 <= bit_vector(alu_idx);
+    addr_data_1 <= bit_vector(alu_idx + 1);
+    addr_data_2 <= bit_vector(alu_idx + 2);
+    addr_data_3 <= bit_vector(alu_idx + 3);
+    addr_data_4 <= bit_vector(alu_idx + 4);
+    addr_data_5 <= bit_vector(alu_idx + 5);
+    addr_data_6 <= bit_vector(alu_idx + 6);
+    addr_data_7 <= bit_vector(alu_idx + 7);
 
-    -- Reconstrói a palavra de 64 bits lida
+    -- Instanciação dos 8 bancos usando os sinais de endereço
+    MEMD_B0: memoriaDados port map (clock => clock, wr => memWrite, addr => addr_data_0, data_i => reg_data2(63 downto 56), data_o => data_d0);
+    MEMD_B1: memoriaDados port map (clock => clock, wr => memWrite, addr => addr_data_1, data_i => reg_data2(55 downto 48), data_o => data_d1);
+    MEMD_B2: memoriaDados port map (clock => clock, wr => memWrite, addr => addr_data_2, data_i => reg_data2(47 downto 40), data_o => data_d2);
+    MEMD_B3: memoriaDados port map (clock => clock, wr => memWrite, addr => addr_data_3, data_i => reg_data2(39 downto 32), data_o => data_d3);
+    MEMD_B4: memoriaDados port map (clock => clock, wr => memWrite, addr => addr_data_4, data_i => reg_data2(31 downto 24), data_o => data_d4);
+    MEMD_B5: memoriaDados port map (clock => clock, wr => memWrite, addr => addr_data_5, data_i => reg_data2(23 downto 16), data_o => data_d5);
+    MEMD_B6: memoriaDados port map (clock => clock, wr => memWrite, addr => addr_data_6, data_i => reg_data2(15 downto  8), data_o => data_d6);
+    MEMD_B7: memoriaDados port map (clock => clock, wr => memWrite, addr => addr_data_7, data_i => reg_data2( 7 downto  0), data_o => data_d7);
+
+    -- Reconstrói a palavra de 64 bits
     data_memory_out <= data_d0 & data_d1 & data_d2 & data_d3 & data_d4 & data_d5 & data_d6 & data_d7;
 
     -- =======================================================================
@@ -268,7 +289,7 @@ begin
 
     pc_src <= uncondBranch or (branch and flag_zero);
 
-    U_MUX_PC : mux_2 -- Corrigido de mux_n para mux_2 para consistência
+    U_MUX_PC : mux_2 
         generic map (dataSize => 64)
         port map (in0 => pc_sum4, in1 => pc_branch, sel => pc_src, dOut => pc_next);
 
