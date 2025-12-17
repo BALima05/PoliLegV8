@@ -5,7 +5,7 @@ use std.textio.all;
 entity memoriaDados is 
     generic (
         addressSize : natural := 8;
-        dataSize    : natural := 8;
+        dataSize    : natural := 64;
         datFileName : string := "memDadosInicialPolilegv8.dat"
     );
     port ( 
@@ -25,6 +25,7 @@ architecture arch_memDados of memoriaDados is
         file f : text open read_mode is file_name;
         variable l : line; 
         variable tmp_bv : bit_vector(dataSize-1 downto 0); 
+        variable file_val : bit_vector(7 downto 0);
         variable tmp_mem : mem_type; 
         variable iRead 	 : natural := 0;    
 
@@ -35,12 +36,18 @@ architecture arch_memDados of memoriaDados is
 
         while not endfile(f) loop 
             readline(f, l);
-            read(l, tmp_bv);
+            read(l, file_val);
+            if dataSize > 8 then 
+                tmp_bv := (others => '0'); 
+                tmp_bv(7 downto 0) := file_val; 
+            else 
+                tmp_bv := file_val; 
+            end if;
             tmp_mem(iRead) := tmp_bv; 
 	    iRead := iRead + 1;
         end loop; 
         return tmp_mem; 
-    end;
+    end function;
 
     signal mem : mem_type := init_mem(datFileName);
 

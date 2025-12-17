@@ -5,7 +5,7 @@ use std.textio.all;
 entity memoriaInstrucoes is
     generic (
         addressSize : natural := 8;
-        dataSize    : natural := 8;
+        dataSize    : natural := 32;
         datFileName : string  := "memInstrPolilegv8.dat"
     );
     port (
