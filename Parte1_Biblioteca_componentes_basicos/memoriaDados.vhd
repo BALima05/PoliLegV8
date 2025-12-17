@@ -1,6 +1,6 @@
 library ieee;
 use ieee.numeric_bit.all;
-use std_textio.all;
+use std.textio.all;
 
 entity memoriaDados is 
     generic (
@@ -58,3 +58,4 @@ begin
 end arch_memDados; 
 
     
+

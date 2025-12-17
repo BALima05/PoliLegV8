@@ -1,6 +1,6 @@
 library ieee;
 use ieee.numeric_bit.all;
-use std_textio.all;
+use std.textio.all;
 
 entity memoriaInstrucoes is
     generic (
@@ -59,6 +59,7 @@ architecture arch_memInstr of memoriaInstrucoes is
  begin 
      data <= mem_data(to_integer(unsigned(addr)));
  end arch_memInstr; 
+
 
 
 
