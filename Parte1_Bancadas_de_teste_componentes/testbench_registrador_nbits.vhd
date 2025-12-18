@@ -35,6 +35,13 @@ begin
 
     stim_proc: process
     begin
+        -- Caso 1: Teste de Reset Assíncrono
+        reset_tb <= '1';
+        wait for 15 ns; 
+        assert (q_tb = (q_tb'range => '0')) report "Erro: Reset falhou" severity error;
+        reset_tb <= '0';
+        wait for 10 ns;
+            
         -- Caso 2: Tentativa de escrita com Enable em '0'
         d_tb <= "0000000000000000000000000000000000000000000000000000000010101010";
         enable_tb <= '0';
@@ -67,4 +74,5 @@ begin
     end process;
 
 end architecture behavior;
+
 
